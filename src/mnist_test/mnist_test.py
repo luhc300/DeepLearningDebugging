@@ -64,4 +64,13 @@ def test_m_distance(label):
     y_another = y_test.reshape(-1)
     x_another = x_another[y_another == label+1]
     y_another = y_another[y_another == label+1]
+    mid = cnn_profiler.get_mid([None, 28, 28, 1], [None, 10], x_another)
+    another_dis = []
+    for i in range(mid.shape[0]):
+        dis = distribute_correct.mahanobis_distance(mid[i])
+        another_dis.append(dis)
+    another_dis = np.array(another_dis)
+    print(another_dis)
+    print(another_dis.max())
+    print(another_dis.mean())
 test_m_distance(4)
