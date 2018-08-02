@@ -29,7 +29,7 @@ def test():
 def get_mid(label):
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
-    x = x[y == label]
+    x = x[y == label] / 255
     mid = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x / 255)
     return mid
 def get_correct_mid(label):
@@ -88,17 +88,19 @@ def pertubation_test(label, pertubation):
 def gaussian_check(label):
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
-    x = x[y == label]
+    x = x[y == label] / 255
     n, p = cnn_profiler.gaussian_check([None, 32, 32, 3], [None, 10], x)
     thres=1e-3
     p_normal = np.where(p>thres)[0]
     print(p_normal)
     return p_normal
+
+
 ################# Mahanobis Distance #################
 def test_m_distance(label):
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
-    x = x[y == label]
+    x = x[y == label] / 255
     y = y[y == label]
     correct = get_correct_mid(label)
     distribute_correct = Distribution(correct)
@@ -112,7 +114,7 @@ def test_m_distance(label):
     print(own_dis.mean())
     xx = X_test.astype("float32")
     yy = y_test.reshape(-1)
-    xx = xx[yy == label]
+    xx = xx[yy == label] / 255
     yy = yy[yy == label]
     values = yy
     n_values = 10
@@ -135,6 +137,19 @@ def test_m_distance(label):
     print(test_wrong_dis)
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
+    x_another = X_train.astype("float32")
+    y_another = y_train.reshape(-1)
+    x_another = x_another[y_another == label + 1] / 255
+    y_another = y_another[y_another == label + 1]
+    mid = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x_another)
+    another_dis = []
+    for i in range(mid.shape[0]):
+        dis = distribute_correct.mahanobis_distance(mid[i])
+        another_dis.append(dis)
+    another_dis = np.array(another_dis)
+    print(another_dis)
+    print(another_dis.max())
+    print(another_dis.mean())
 
 test_m_distance(5)
 

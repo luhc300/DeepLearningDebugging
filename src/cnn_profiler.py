@@ -124,7 +124,7 @@ class CNNProfiler:
                 correct_vec = mid[correct==0]
             return correct_vec
 
-    def get_mid(self, input_dim, output_dim, in_x, anchor):
+    def get_mid(self, input_dim, output_dim, in_x, anchor=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture)
             self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
