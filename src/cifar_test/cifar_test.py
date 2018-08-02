@@ -1,13 +1,14 @@
 from keras.datasets import cifar10
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.cifar.network_config_1 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH
+from src.configs.network_configs.cifar.network_config_2 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 import numpy as np
 import matplotlib.pyplot as plt
 from src.distribution import Distribution
 (X_train, y_train), (X_test, y_test) = cifar10.load_data()
-cnn_profiler = CNNProfiler(NETWORK_STRUCTURE, network_anchor=NETWORK_ANCHOR, network_path=NETWORK_PATH)
+cnn_profiler = CNNProfiler(NETWORK_STRUCTURE, network_anchor=NETWORK_ANCHOR, network_path=NETWORK_PATH, init=INIT, lr=LEARNING_RATE)
 ################## Train ######################
 def train():
+
     x = X_train.astype("float32")
     x /= 255
     print(X_train)
@@ -15,7 +16,7 @@ def train():
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
-    cnn_profiler.train([None, 32, 32, 3], [None, 10], x, y, iter=5000)
+    cnn_profiler.train([None, 32, 32, 3], [None, 10], x, y, iter=6000)
 ################## Test ########################
 def test():
     x = X_test.astype("float32")
@@ -135,8 +136,7 @@ def test_m_distance(label):
     print(test_wrong_dis)
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
-
-test_m_distance(5)
+train()
 
 
 

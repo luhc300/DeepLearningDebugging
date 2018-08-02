@@ -8,20 +8,23 @@ class Layer:
 
 
 class CNNBuilder:
-    def __init__(self, input_dim, output_dim, network_structure:list):
+    def __init__(self, input_dim, output_dim, network_structure:list, init):
         self.network_structure = network_structure
         self.input_dim = input_dim
         self.output_dim = output_dim
+        self.init = init
         self.W = []
         self.B = []
         self.R = []
 
     def weight_variable(self, shape, name):
-        initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial, name=name)
+        # initial = tf.truncated_normal(shape, stddev=self.init)
+        return tf.get_variable(name=name,
+                        shape=shape,
+                        initializer=tf.contrib.layers.xavier_initializer())
 
     def bias_variable(self, shape, name):
-        initial = tf.constant(0.1, shape=shape)
+        initial = tf.constant(self.init, shape=shape)
         return tf.Variable(initial, name=name)
 
     def conv2d(self, x, W):
