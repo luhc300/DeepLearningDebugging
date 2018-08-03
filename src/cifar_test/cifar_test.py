@@ -1,15 +1,18 @@
 from keras.datasets import cifar10
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.cifar.network_config_2 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
+from src.configs.network_configs.cifar.network_config_1 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 import numpy as np
 import matplotlib.pyplot as plt
 from src.distribution import Distribution
 (X_train, y_train), (X_test, y_test) = cifar10.load_data()
+X_train = X_train.astype("float32")
+X_train /= 255
+X_test = X_test.astype("float32")
+X_test /= 255
 cnn_profiler = CNNProfiler(NETWORK_STRUCTURE, network_anchor=NETWORK_ANCHOR, network_path=NETWORK_PATH, init=INIT, lr=LEARNING_RATE)
 ################## Train ######################
 def train():
     x = X_train.astype("float32")
-    x /= 255
     print(X_train)
     y = y_train.reshape(-1)
     values = y
@@ -18,9 +21,8 @@ def train():
     cnn_profiler.train([None, 32, 32, 3], [None, 10], x, y, iter=6000)
 ################## Test ########################
 def test():
-    x = X_test.astype("float32")
-    x /= 255
-    y = y_test.reshape(-1)
+    x = X_train.astype("float32")
+    y = y_train.reshape(-1)
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
@@ -29,12 +31,11 @@ def test():
 def get_mid(label):
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
-    x = x[y == label] / 255
-    mid = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x / 255)
+    x = x[y == label]
+    mid = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x)
     return mid
 def get_correct_mid(label):
     x = X_train.astype("float32")
-    x /= 255
     y = y_train.reshape(-1)
     x = x[y == label]
     y = y[y == label]
@@ -48,7 +49,7 @@ def pertubation_test(label, pertubation):
     def pertubate_img(img, pertubation):
         img_p = np.array(img)
         img_p += pertubation
-        img_p[img_p>255]=255
+        img_p[img_p>1]=1
         img_p[img_p<0]=0
         return img_p
     x = X_train.astype("float32")
@@ -58,13 +59,13 @@ def pertubation_test(label, pertubation):
     x_ptb = pertubate_img(x_ori,pertubation)
     # x_ptb = x[y == (label+1)][0]
     plt.subplot(211)
-    plt.imshow( x_ori/255)
+    plt.imshow( x_ori)
     plt.subplot(212)
-    plt.imshow( x_ptb/255)
+    plt.imshow( x_ptb)
     # plt.show()
-    cnn_profiler.test([None, 32, 32, 3], [None, 10], x_ptb/255)
-    ori_vec = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x_ori / 255)
-    ptb_vec = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x_ptb/255)
+    cnn_profiler.test([None, 32, 32, 3], [None, 10], x_ptb)
+    ori_vec = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x_ori)
+    ptb_vec = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x_ptb)
     np.savetxt("profile/cifar/%s.txt" % str(label)+"_ori", ori_vec, fmt="%.4f")
     np.savetxt("profile/cifar/%s.txt" % str(label)+"_ptb", ptb_vec, fmt="%.4f")
     thres = 1e-2
@@ -88,7 +89,7 @@ def pertubation_test(label, pertubation):
 def gaussian_check(label):
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
-    x = x[y == label] / 255
+    x = x[y == label]
     n, p = cnn_profiler.gaussian_check([None, 32, 32, 3], [None, 10], x)
     thres=1e-3
     p_normal = np.where(p>thres)[0]
@@ -98,7 +99,7 @@ def gaussian_check(label):
 def test_m_distance(label):
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
-    x = x[y == label] / 255
+    x = x[y == label]
     y = y[y == label]
     correct = get_correct_mid(label)
     distribute_correct = Distribution(correct)
@@ -112,7 +113,7 @@ def test_m_distance(label):
     print(own_dis.mean())
     xx = X_test.astype("float32")
     yy = y_test.reshape(-1)
-    xx = xx[yy == label] / 255
+    xx = xx[yy == label]
     yy = yy[yy == label]
     values = yy
     n_values = 10
@@ -137,8 +138,9 @@ def test_m_distance(label):
     print(test_wrong_dis.mean())
     x_another = X_train.astype("float32")
     y_another = y_train.reshape(-1)
-    x_another = x_another[y_another == label + 1] / 255
-    y_another = y_another[y_another == label + 1]
+    x_another = x_another[y_another == label + 2]
+    print(x_another)
+    y_another = y_another[y_another == label + 2]
     mid = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x_another)
     another_dis = []
     for i in range(mid.shape[0]):
@@ -149,8 +151,8 @@ def test_m_distance(label):
     print(another_dis.max())
     print(another_dis.mean())
 
-test_m_distance(5)
-train()
+
+
 
 
 

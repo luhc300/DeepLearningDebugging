@@ -10,3 +10,5 @@ NETWORK_STRUCTURE = [Layer("conv", [5, 5, 1, 32]),
                      Layer("dense", [1024, 10])]
 NETWORK_ANCHOR = -2
 NETWORK_PATH = "model/mnist/model_1.ckpt"
+INIT = 1e-1
+LEARNING_RATE = 1e-3

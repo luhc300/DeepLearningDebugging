@@ -8,7 +8,7 @@ class Layer:
 
 
 class CNNBuilder:
-    def __init__(self, input_dim, output_dim, network_structure:list, init):
+    def __init__(self, input_dim, output_dim, network_structure:list, init=0.0):
         self.network_structure = network_structure
         self.input_dim = input_dim
         self.output_dim = output_dim
