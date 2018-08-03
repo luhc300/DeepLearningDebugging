@@ -48,8 +48,8 @@ class CNNProfiler:
                 if i % 100 == 0:
                     train_accuracy = accuracy.eval(feed_dict={self.x: xx, self.y: yy})
                     print("step %d, training accuracy %g" % (i, train_accuracy))
-                    mid = sess.run(mid_watch, feed_dict={self.x: xx})
-                    print(mid.reshape(500, -1))
+                    # mid = sess.run(mid_watch, feed_dict={self.x: xx})
+                    # print(mid.reshape(500, -1))
                 sess.run(train_step, feed_dict={self.x: xx, self.y: yy})
             saver_path = saver.save(sess, self.network_path)
             print("Model saved in file: ", saver_path)

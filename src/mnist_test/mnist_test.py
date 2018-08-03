@@ -1,7 +1,7 @@
 from keras.datasets import mnist
 from tensorflow.contrib.learn.python.learn.datasets.mnist import read_data_sets
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.mnist.network_config_1 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
+from src.configs.network_configs.mnist.network_config_3 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 from src.distribution import Distribution
 import os
 import numpy as np
@@ -93,4 +93,6 @@ def test_m_distance(label):
     # print(another_dis)
     print(another_dis.max())
     print(another_dis.mean())
-test_m_distance(4)
+train()
+test()
+test_m_distance(5)
