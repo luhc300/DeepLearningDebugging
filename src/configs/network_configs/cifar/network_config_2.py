@@ -1,6 +1,6 @@
 from src.cnn_builder import Layer
 
-DROPOUT_PROB = 1
+DROPOUT_PROB = 0.6
 NETWORK_STRUCTURE = [Layer("conv", [3, 3, 3, 64]),
                      Layer("conv", [3, 3, 64, 64]),
                      Layer("pool", []),
