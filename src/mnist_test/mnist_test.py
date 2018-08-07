@@ -1,7 +1,7 @@
 from keras.datasets import mnist
 from tensorflow.contrib.learn.python.learn.datasets.mnist import read_data_sets
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.mnist.network_config_3 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
+from src.configs.network_configs.mnist.network_config_1 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 from src.distribution import Distribution
 import os
 import numpy as np
@@ -25,7 +25,11 @@ def test():
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
-    cnn_profiler.test([None, 28, 28, 1], [None, 10], x[:2000], y[:2000])
+    acc = 0
+    for i in range(0, 8001, 2000):
+        acc += cnn_profiler.test([None, 28, 28, 1], [None, 10], x[i:i+2000], y[i:i+2000])
+    acc /= 5
+    print(acc)
 
 # mnist = read_data_sets("data/MNIST_data/", one_hot=True)
 # x = mnist.train.images
@@ -53,6 +57,7 @@ def test_m_distance(label):
         own_dis.append(dis)
     own_dis = np.array(own_dis)
     # print(own_dis)
+    print(own_dis.min())
     print(own_dis.max())
     print(own_dis.mean())
     xx = X_test.astype("float32")
@@ -75,9 +80,11 @@ def test_m_distance(label):
         test_wrong_dis.append(dis)
     test_wrong_dis = np.array(test_wrong_dis)
     # print(test_correct_dis)
+    print(test_correct_dis.min())
     print(test_correct_dis.max())
     print(test_correct_dis.mean())
     # print(test_wrong_dis)
+    print(test_wrong_dis.min())
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
     x_another = X_train.astype("float32")
@@ -91,8 +98,10 @@ def test_m_distance(label):
         another_dis.append(dis)
     another_dis = np.array(another_dis)
     # print(another_dis)
+    print(another_dis.min())
     print(another_dis.max())
     print(another_dis.mean())
-train()
-test()
+
+def test_with_filter(label):
+    pass
 test_m_distance(5)

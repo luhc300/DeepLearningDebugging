@@ -101,7 +101,11 @@ def test_m_distance(label):
     y = y_train.reshape(-1)
     x = x[y == label]
     y = y[y == label]
-    correct = get_correct_mid(label)
+    values = y
+    n_values = 10
+    y = np.eye(n_values)[values]
+    print(y)
+    correct = cnn_profiler.get_correct_mid([None, 32, 32, 3], [None, 10], x, y)
     distribute_correct = Distribution(correct)
     own_dis = []
     for i in range(correct.shape[0]):
@@ -139,7 +143,6 @@ def test_m_distance(label):
     x_another = X_train.astype("float32")
     y_another = y_train.reshape(-1)
     x_another = x_another[y_another == label + 2]
-    print(x_another)
     y_another = y_another[y_another == label + 2]
     mid = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x_another)
     another_dis = []
@@ -150,6 +153,7 @@ def test_m_distance(label):
     print(another_dis)
     print(another_dis.max())
     print(another_dis.mean())
+test()
 
 
 
