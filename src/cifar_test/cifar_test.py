@@ -12,6 +12,7 @@ X_test /= 255
 cnn_profiler = CNNProfiler(NETWORK_STRUCTURE, network_anchor=NETWORK_ANCHOR, network_path=NETWORK_PATH, init=INIT, lr=LEARNING_RATE)
 ################## Train ######################
 def train():
+
     x = X_train.astype("float32")
     print(X_train)
     y = y_train.reshape(-1)
@@ -26,7 +27,7 @@ def test():
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
-    cnn_profiler.test([None, 32, 32, 3], [None, 10], x[:1000], y[:1000])
+    cnn_profiler.test([None, 32, 32, 3], [None, 10], x[:2000], y[:2000])
 ################## Correct Vector ###################
 def get_mid(label):
     x = X_train.astype("float32")
@@ -158,6 +159,7 @@ test()
 
 
 
+test()
 
 
 
