@@ -12,6 +12,7 @@ X_test /= 255
 cnn_profiler = CNNProfiler(NETWORK_STRUCTURE, network_anchor=NETWORK_ANCHOR, network_path=NETWORK_PATH, init=INIT, lr=LEARNING_RATE)
 ################## Train ######################
 def train():
+
     x = X_train.astype("float32")
     print(X_train)
     y = y_train.reshape(-1)
