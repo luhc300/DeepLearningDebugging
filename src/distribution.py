@@ -6,7 +6,7 @@ class Distribution:
         self.data = data
         self.center = np.mean(data, axis=0)
         self.cov = np.cov(data.T)
-        self.con_inv = np.linalg.pinv(self.cov)
+        self.cov_inv = np.linalg.pinv(self.cov)
     def get_center(self):
         return self.center
 
@@ -14,6 +14,6 @@ class Distribution:
         return self.cov
 
     def mahanobis_distance(self, x):
-        return np.squeeze(np.sqrt(np.dot(np.dot((x - self.center), self.con_inv), (x - self.center).T)))
+        return np.squeeze(np.sqrt(np.dot(np.dot((x - self.center), self.cov_inv), (x - self.center).T)))
 
 

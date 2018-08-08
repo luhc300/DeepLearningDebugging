@@ -79,7 +79,7 @@ class CNNProfiler:
                 print(acc)
                 return acc
 
-    def gaussian_check(self, input_dim, output_dim, in_x, anchor=None):
+    def gaussian_check(self, input_dim, output_dim, in_x, anchor=None, filter=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
             self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
@@ -102,7 +102,7 @@ class CNNProfiler:
             n,p = stats.normaltest(mid_moved, axis=0)
             return n,p
 
-    def get_correct_mid(self, input_dim, output_dim, in_x, in_y, anchor=None, wrong=False):
+    def get_correct_mid(self, input_dim, output_dim, in_x, in_y, anchor=None, wrong=False, filter=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
             self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
@@ -122,6 +122,8 @@ class CNNProfiler:
             print("Model reload from" + self.network_path)
             correct = sess.run(correct_prediction, feed_dict={self.x: input_x, self.y:input_y})
             mid = sess.run(mid_watch, feed_dict={self.x: input_x, self.y:input_y})
+            if filter is not None:
+                mid = mid[:,:,:,filter]
             mid = np.reshape(mid, [len(input_x), -1])
             if wrong == False:
                 correct_vec = mid[correct==1]
@@ -129,7 +131,7 @@ class CNNProfiler:
                 correct_vec = mid[correct==0]
             return correct_vec
 
-    def get_mid(self, input_dim, output_dim, in_x, anchor=None):
+    def get_mid(self, input_dim, output_dim, in_x, anchor=None, filter=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
             self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
@@ -145,6 +147,33 @@ class CNNProfiler:
             saver.restore(sess, self.network_path)
             print("Model reload from" + self.network_path)
             mid = sess.run(mid_watch, feed_dict={self.x: input_x})
+            if filter is not None:
+                mid = mid[:,:,:,filter]
             mid = np.reshape(mid, [len(input_x), -1])
             return mid
+    def get_mid_by_label(self,  input_dim, output_dim, in_x, in_y, label, anchor=None, filter=None):
+        if self.cnn_builder is None:
+            self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
+            self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
+        saver = tf.train.Saver()
+        input_dim[0] = -1
+        output_dim[0] = -1
+        input_x = np.reshape(in_x, input_dim)
+        correct_prediction = tf.equal(tf.argmax(self.R[-1], 1), tf.argmax(self.y, 1))
+        label_array = np.array([label])
+        input_y = np.eye(output_dim[-1])[label_array.repeat(input_x.shape[0])]
+        if anchor is None:
+            mid_watch = self.R[self.network_anchor]
+        else:
+            mid_watch = self.R[anchor]
+        with tf.Session() as sess:
+            saver.restore(sess, self.network_path)
+            print("Model reload from" + self.network_path)
+            correct = sess.run(correct_prediction, feed_dict={self.x: input_x, self.y: input_y})
+            pic = input_x[correct==1][1]
+            mid = sess.run(mid_watch, feed_dict={self.x: input_x, self.y: input_y})
+            if filter is not None:
+                mid = mid[:,:,:,filter]
+            mid = np.reshape(mid, [len(input_x), -1])
+            return mid[correct==1], pic
 

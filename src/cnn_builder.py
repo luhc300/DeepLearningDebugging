@@ -43,9 +43,11 @@ class CNNBuilder:
             if layer.type == "conv":
                 w = self.weight_variable(layer.param, "conv_W_"+str(conv_count))
                 b = self.bias_variable(layer.param[-1:], "conv_B_"+str(conv_count))
-                r = tf.nn.relu(self.conv2d(self.R[-1], w) + b)
+                r1 = self.conv2d(self.R[-1], w) + b
+                r = tf.nn.relu(r1)
                 self.W.append(w)
                 self.B.append(b)
+                self.R.append(r1)
                 self.R.append(r)
                 conv_count += 1
             if layer.type == "pool":
@@ -57,11 +59,16 @@ class CNNBuilder:
                 r_reshape = tf.reshape(self.R[-1],[-1, layer.param[0]])
                 if layer == self.network_structure[-1]:
                     r = tf.nn.softmax(tf.matmul(r_reshape, w) + b)
+                    self.W.append(w)
+                    self.B.append(b)
+                    self.R.append(r)
                 else:
-                    r = tf.nn.relu(tf.matmul(r_reshape, w) + b)
-                self.W.append(w)
-                self.B.append(b)
-                self.R.append(r)
+                    r1 = tf.matmul(r_reshape, w) + b
+                    r = tf.nn.relu(r1)
+                    self.W.append(w)
+                    self.B.append(b)
+                    self.R.append(r1)
+                    self.R.append(r)
                 dense_count += 1
             if layer.type == "dropout":
                 r = tf.nn.dropout(self.R[-1], layer.param[0])
