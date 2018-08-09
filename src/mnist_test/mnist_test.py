@@ -8,15 +8,15 @@ import src.augmentation as aug
 import os
 import numpy as np
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
-# test_x, test_y= aug.brightness(X_train[:2], y_train[:2], 1)
+test_x, test_y= aug.random_pertubate(X_train[:2], y_train[:2], 1)
 # plt.subplot(211)
 # plt.imshow(X_train[0].reshape(28,28))
 # plt.subplot(212)
 # plt.imshow(test_x[0].reshape(28,28))
 # plt.show()
-X_ptb, y_ptb = aug.brightness(X_train, y_train, 1)
-X_train = np.concatenate((X_train, X_ptb), axis=0)
-y_train = np.concatenate((y_train, y_ptb), axis=0)
+X_ptb, y_ptb = aug.random_pertubate(X_train, y_train, 1)
+X_train = np.concatenate((X_train[:1000], X_ptb), axis=0)
+y_train = np.concatenate((y_train[:1000], y_ptb), axis=0)
 X_train = X_train.astype("float32")
 X_train /= 255
 X_test = X_test.astype("float32")
@@ -105,8 +105,8 @@ def test_m_distance(label):
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
     print(small_rate(test_wrong_dis, 200))
-    x_another = X_train.astype("float32")
-    y_another = y_train.reshape(-1)
+    x_another = X_test.astype("float32")
+    y_another = y_test.reshape(-1)
     x_another = x_another[y_another == label+1]
     y_another = y_another[y_another == label+1]
     mid = cnn_profiler.get_mid([None, 28, 28, 1], [None, 10], x_another, anchor=anchor, filter=filter)
@@ -123,6 +123,8 @@ def test_m_distance(label):
 
 
 def test_with_filter(label):
+    anchor=-2
+    filter=None
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
     x = x[y == label]
@@ -130,7 +132,7 @@ def test_with_filter(label):
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
-    correct = cnn_profiler.get_correct_mid([None, 28, 28, 1], [None, 10], x, y, anchor=1,filter=0)
+    correct = cnn_profiler.get_correct_mid([None, 28, 28, 1], [None, 10], x, y, anchor=anchor,filter=filter)
     distribute_correct = Distribution(correct)
     own_dis = []
     for i in range(correct.shape[0]):
@@ -145,7 +147,7 @@ def test_with_filter(label):
     y = y_test.reshape(-1)
     x = x[y != label][:2000]
     y = y[y != label][:2000]
-    wrong_test, pic = cnn_profiler.get_mid_by_label([None, 28, 28, 1], [None, 10],  x, y, label, anchor=1,filter=0)
+    wrong_test, pic = cnn_profiler.get_mid_by_label([None, 28, 28, 1], [None, 10],  x, y, label, anchor=anchor,filter=filter)
     logits, pic = cnn_profiler.get_mid_by_label([None, 28, 28, 1], [None, 10],  x, y, label, anchor=-1)
     pic = pic.reshape(28,28)
     plt.imshow(pic)
@@ -161,4 +163,4 @@ def test_with_filter(label):
     print(test_wrong_dis.min())
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
-test_with_filter(3)
+test_m_distance(7)
