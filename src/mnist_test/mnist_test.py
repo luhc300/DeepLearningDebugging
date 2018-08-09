@@ -1,12 +1,22 @@
 from keras.datasets import mnist
 from tensorflow.contrib.learn.python.learn.datasets.mnist import read_data_sets
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.mnist.network_config_4 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
+from src.configs.network_configs.mnist.network_config_1 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 from src.distribution import Distribution
 import matplotlib.pyplot as plt
+import src.augmentation as aug
 import os
 import numpy as np
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
+# test_x, test_y= aug.brightness(X_train[:2], y_train[:2], 1)
+# plt.subplot(211)
+# plt.imshow(X_train[0].reshape(28,28))
+# plt.subplot(212)
+# plt.imshow(test_x[0].reshape(28,28))
+# plt.show()
+X_ptb, y_ptb = aug.brightness(X_train, y_train, 1)
+X_train = np.concatenate((X_train, X_ptb), axis=0)
+y_train = np.concatenate((y_train, y_ptb), axis=0)
 X_train = X_train.astype("float32")
 X_train /= 255
 X_test = X_test.astype("float32")
@@ -19,7 +29,7 @@ def train():
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
-    cnn_profiler.train([None, 28, 28, 1], [None, 10], x, y)
+    cnn_profiler.train([None, 28, 28, 1], [None, 10], x, y, iter=4000)
 def test():
     x = X_test.astype("float32")
     y = y_test.reshape(-1)
@@ -151,4 +161,4 @@ def test_with_filter(label):
     print(test_wrong_dis.min())
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
-test_m_distance(2)
+test_with_filter(3)
