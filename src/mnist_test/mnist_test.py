@@ -1,7 +1,7 @@
 from keras.datasets import mnist
 from tensorflow.contrib.learn.python.learn.datasets.mnist import read_data_sets
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.mnist.network_config_1 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
+from src.configs.network_configs.mnist.network_config_4 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 from src.distribution import Distribution
 import matplotlib.pyplot as plt
 import src.augmentation as aug
@@ -76,6 +76,7 @@ def test_m_distance(label):
     print(own_dis.min())
     print(own_dis.max())
     print(own_dis.mean())
+    thres = own_dis.mean() * 2
     xx = X_test.astype("float32")
     yy = y_test.reshape(-1)
     xx = xx[yy == label]
@@ -99,17 +100,20 @@ def test_m_distance(label):
     print(test_correct_dis.min())
     print(test_correct_dis.max())
     print(test_correct_dis.mean())
-    print(small_rate(test_correct_dis, 200))
+    print(small_rate(test_correct_dis, thres))
     # print(test_wrong_dis)
     print(test_wrong_dis.min())
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
-    print(small_rate(test_wrong_dis, 200))
+    print(small_rate(test_wrong_dis, thres))
     x_another = X_test.astype("float32")
     y_another = y_test.reshape(-1)
-    x_another = x_another[y_another == label+1]
-    y_another = y_another[y_another == label+1]
-    mid = cnn_profiler.get_mid([None, 28, 28, 1], [None, 10], x_another, anchor=anchor, filter=filter)
+    x_another = x_another[y_another != label]
+    y_another = y_another[y_another != label]
+    values = y_another
+    n_values = 10
+    y_another = np.eye(n_values)[values]
+    mid = cnn_profiler.get_correct_mid([None, 28, 28, 1], [None, 10], x_another, y_another, anchor=anchor, filter=filter)
     another_dis = []
     for i in range(mid.shape[0]):
         dis = distribute_correct.mahanobis_distance(mid[i])
@@ -119,7 +123,7 @@ def test_m_distance(label):
     print(another_dis.min())
     print(another_dis.max())
     print(another_dis.mean())
-    print(small_rate(another_dis, 200))
+    print(small_rate(another_dis, thres))
 
 
 def test_with_filter(label):
@@ -163,4 +167,4 @@ def test_with_filter(label):
     print(test_wrong_dis.min())
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
-test_m_distance(7)
+test_m_distance(8)

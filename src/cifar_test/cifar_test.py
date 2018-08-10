@@ -1,6 +1,6 @@
 from keras.datasets import cifar10
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.cifar.network_config_1 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
+from src.configs.network_configs.cifar.network_config_2 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 import numpy as np
 import matplotlib.pyplot as plt
 from src.distribution import Distribution
@@ -97,6 +97,12 @@ def gaussian_check(label):
     print(p_normal)
     return p_normal
 ################# Mahanobis Distance #################
+def small_rate(data, range):
+    data_in_range = data[data <= range]
+    rate = len(data_in_range) / len(data)
+    return rate
+
+
 def test_m_distance(label):
     x = X_train.astype("float32")
     y = y_train.reshape(-1)
@@ -154,12 +160,55 @@ def test_m_distance(label):
     print(another_dis)
     print(another_dis.max())
     print(another_dis.mean())
-test()
+
+def test_with_filter(label):
+    anchor=-2
+    filter=None
+    x = X_train.astype("float32")
+    y = y_train.reshape(-1)
+    x = x[y == label]
+    y = y[y == label]
+    values = y
+    n_values = 10
+    y = np.eye(n_values)[values]
+    correct = cnn_profiler.get_correct_mid([None, 32, 32, 3], [None, 10], x, y, anchor=anchor,filter=filter)
+    distribute_correct = Distribution(correct)
+    own_dis = []
+    for i in range(correct.shape[0]):
+        dis = distribute_correct.mahanobis_distance(correct[i])
+        own_dis.append(dis)
+    own_dis = np.array(own_dis)
+    # print(own_dis)
+    print(own_dis.min())
+    print(own_dis.max())
+    print(own_dis.mean())
+    x = X_test.astype("float32")
+    y = y_test.reshape(-1)
+    x = x[y != label][:2000]
+    y = y[y != label][:2000]
+    wrong_test, pic = cnn_profiler.get_mid_by_label([None, 32, 32, 3], [None, 10],  x, y, label, anchor=anchor,filter=filter)
+    logits, pic = cnn_profiler.get_mid_by_label([None, 32, 32, 3], [None, 10],  x, y, label, anchor=-1)
+    pic = pic.reshape(32,32,3)
+    plt.imshow(pic)
+    plt.show()
+    print(logits)
+    test_wrong_dis = []
+    for i in range(wrong_test.shape[0]):
+        dis = distribute_correct.mahanobis_distance(wrong_test[i])
+        test_wrong_dis.append(dis)
+    test_wrong_dis = np.array(test_wrong_dis)
+    # print(test_correct_dis)
+    print(test_wrong_dis)
+    print(test_wrong_dis.min())
+    print(test_wrong_dis.max())
+    print(test_wrong_dis.mean())
+    print(small_rate(test_wrong_dis,200))
+test_with_filter(3)
 
 
 
 
-test()
+
 
 
 
