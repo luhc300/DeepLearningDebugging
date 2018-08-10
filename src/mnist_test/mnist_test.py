@@ -163,4 +163,44 @@ def test_with_filter(label):
     print(test_wrong_dis.min())
     print(test_wrong_dis.max())
     print(test_wrong_dis.mean())
-test_m_distance(7)
+
+def pertubation_test(label, pertubation):
+    def pertubate_img(img, pertubation):
+        img_p = np.array(img)
+        img_p += pertubation
+        img_p[img_p>1]=1
+        img_p[img_p<0]=0
+        return img_p
+    anchor = -2
+    filter = None
+    x = X_train.astype("float32")
+    y = y_train.reshape(-1)
+    x = x[y==label]
+    y = y[y==label]
+    values = y
+    n_values = 10
+    y = np.eye(n_values)[values]
+    x_ori = x[2]
+    print(x_ori.shape)
+    correct = cnn_profiler.get_correct_mid([None, 28, 28, 1], [None, 10], x, y, anchor=anchor, filter=filter)
+    distribute_correct = Distribution(correct)
+    own_dis = []
+    for i in range(correct.shape[0]):
+        dis = distribute_correct.mahanobis_distance(correct[i])
+        own_dis.append(dis)
+    own_dis = np.array(own_dis)
+    # print(own_dis)
+    print(own_dis.min())
+    print(own_dis.max())
+    print(own_dis.mean())
+    x_ptb = pertubate_img(x_ori,pertubation)
+    # x_ptb = x[y == (label+1)][0]
+    plt.subplot(211)
+    plt.imshow( x_ori)
+    plt.subplot(212)
+    plt.imshow( x_ptb)
+    plt.show()
+    cnn_profiler.test([None, 28, 28, 1], [None, 10], x_ptb)
+    ptb_vec = cnn_profiler.get_mid([None, 28, 28, 1], [None, 10], x_ptb, anchor=anchor,filter=filter)
+    print(distribute_correct.mahanobis_distance(ptb_vec))
+pertubation_test(3, 0.9)
