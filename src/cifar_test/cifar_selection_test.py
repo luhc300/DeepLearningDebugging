@@ -63,12 +63,12 @@ def test_m_dist(label):
     y = np.eye(n_values)[values]
     anchor = -2
     filter = None
-    test_correct_dis = []
     correct_test = cnn_profiler.get_correct_mid([None, 32, 32, 3], [None, 10], x, y, anchor=anchor, filter=filter)
     wrong_test = cnn_profiler.get_correct_mid([None, 32, 32, 3], [None, 10], x, y, wrong=True, anchor=anchor, filter=filter)
     distribution_list = calc_distribution(anchor, filter)
     for j in range(10):
         distribute_correct = distribution_list[j]
+        test_correct_dis = []
         for i in range(correct_test.shape[0]):
             dis = distribute_correct.mahanobis_distance(correct_test[i])
             test_correct_dis.append(dis)
