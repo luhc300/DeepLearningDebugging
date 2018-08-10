@@ -1,6 +1,6 @@
 from keras.datasets import cifar10
 from src.cnn_profiler import CNNProfiler
-from src.configs.network_configs.cifar.network_config_3 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
+from src.configs.network_configs.cifar.network_config_4 import NETWORK_STRUCTURE, NETWORK_ANCHOR, NETWORK_PATH, INIT, LEARNING_RATE
 import numpy as np
 import matplotlib.pyplot as plt
 from src.distribution import Distribution
@@ -31,10 +31,10 @@ def train():
     cnn_profiler.train([None, 32, 32, 3], [None, 10], x, y, iter=6000)
 ################## Test ########################
 def test():
-    x = X_train.astype("float32")
-    y = y_train.reshape(-1)
+    x = X_test.astype("float32")
+    y = y_test.reshape(-1)
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
     cnn_profiler.test([None, 32, 32, 3], [None, 10], x[:2000], y[:2000])
-train()
+test()
