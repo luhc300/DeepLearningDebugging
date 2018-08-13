@@ -27,3 +27,4 @@ NETWORK_ANCHOR = -4
 NETWORK_PATH = "model/cifar/model_4.ckpt"
 INIT = 0.0
 LEARNING_RATE = 1e-4
+DISTRIBUTION_PATH = "profile/cifar/model4VGG_mdist_distribution.pkl"

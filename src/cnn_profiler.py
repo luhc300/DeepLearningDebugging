@@ -113,6 +113,7 @@ class CNNProfiler:
         input_y = np.reshape(in_y, output_dim)
         print(input_x.shape, input_y.shape)
         correct_prediction = tf.equal(tf.argmax(self.R[-1], 1), tf.argmax(self.y, 1))
+        prediction = tf.argmax(self.R[-1], 1)
         if anchor is None:
             mid_watch = self.R[self.network_anchor]
         else:
@@ -129,6 +130,8 @@ class CNNProfiler:
                 correct_vec = mid[correct==1]
             else:
                 correct_vec = mid[correct==0]
+                pre = sess.run(prediction, feed_dict={self.x : input_x})
+                print(pre[correct==0])
             return correct_vec
 
     def get_mid(self, input_dim, output_dim, in_x, anchor=None, filter=None):

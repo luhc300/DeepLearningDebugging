@@ -10,3 +10,4 @@ NETWORK_ANCHOR = -4
 NETWORK_PATH = "model/mnist/model_2.ckpt"
 INIT = 1e-1
 LEARNING_RATE = 1e-3
+DISTRIBUTION_PATH = "profile/mnist/model2_mdist_distribution.pkl"
