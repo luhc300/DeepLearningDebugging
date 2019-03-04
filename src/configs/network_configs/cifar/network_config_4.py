@@ -19,9 +19,7 @@ NETWORK_STRUCTURE = [Layer("conv", [3, 3, 3, 64]),
                      Layer("conv", [3, 3, 512, 512]),
                      Layer("conv", [3, 3, 512, 512]),
                      Layer("dense", [2*2*512, 4096]),
-                     Layer("dropout", [DROPOUT_PROB]),
                      Layer("dense", [4096, 4096]),
-                     Layer("dropout", [DROPOUT_PROB]),
                      Layer("dense", [4096, 10])]
 NETWORK_ANCHOR = -4
 NETWORK_PATH = "model/cifar/model_4.ckpt"

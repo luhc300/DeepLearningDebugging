@@ -17,6 +17,7 @@ class CNNProfiler:
         self.R = []
         self.x = None
         self.y = None
+        self.is_train = None
         self.batch_count = 0
 
     def get_next_batch(self, x, y, inc=500):
@@ -30,7 +31,7 @@ class CNNProfiler:
     def train(self, input_dim, output_dim, in_x, in_y, iter=2000):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
-        self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
+        self.W, self.B, self.R, self.x, self.y, self.is_train = self.cnn_builder.build_cnn()
         input_dim[0] = -1
         output_dim[0] = -1
         input_x = np.reshape(in_x, input_dim)
@@ -50,14 +51,14 @@ class CNNProfiler:
                     print("step %d, training accuracy %g" % (i, train_accuracy))
                     # mid = sess.run(mid_watch, feed_dict={self.x: xx})
                     # print(mid.reshape(500, -1))
-                sess.run(train_step, feed_dict={self.x: xx, self.y: yy})
+                sess.run(train_step, feed_dict={self.x: xx, self.y: yy, self.is_train: True})
             saver_path = saver.save(sess, self.network_path)
             print("Model saved in file: ", saver_path)
 
     def test(self, input_dim, output_dim, in_x, in_y=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
-            self.W, self.B, self.R, self.x, self.y = CNNBuilder(input_dim, output_dim, self.network_stucture).build_cnn()
+            self.W, self.B, self.R, self.x, self.y, self.is_train= CNNBuilder(input_dim, output_dim, self.network_stucture).build_cnn()
         saver = tf.train.Saver()
         input_dim[0] = -1
         output_dim[0] = -1
@@ -75,6 +76,9 @@ class CNNProfiler:
                 print(pre)
                 return pre
             else:
+                cor_pre = sess.run(correct_prediction, feed_dict={self.x: input_x, self.y: input_y})
+                print(len(cor_pre[cor_pre==0]))
+                print(input_y[cor_pre==0].argmax(axis=1))
                 acc = sess.run(accuracy, feed_dict={self.x: input_x, self.y: input_y})
                 print(acc)
                 return acc
@@ -82,7 +86,7 @@ class CNNProfiler:
     def gaussian_check(self, input_dim, output_dim, in_x, anchor=None, filter=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
-            self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
+            self.W, self.B, self.R, self.x, self.y, self.is_train = self.cnn_builder.build_cnn()
         saver = tf.train.Saver()
         input_dim[0] = -1
         input_x = np.reshape(in_x, input_dim)
@@ -105,7 +109,7 @@ class CNNProfiler:
     def get_correct_mid(self, input_dim, output_dim, in_x, in_y, anchor=None, wrong=False, filter=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
-            self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
+            self.W, self.B, self.R, self.x, self.y, self.is_train = self.cnn_builder.build_cnn()
         saver = tf.train.Saver()
         input_dim[0] = -1
         output_dim[0] = -1
@@ -137,7 +141,7 @@ class CNNProfiler:
     def get_mid(self, input_dim, output_dim, in_x, anchor=None, filter=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
-            self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
+            self.W, self.B, self.R, self.x, self.y, self.is_train = self.cnn_builder.build_cnn()
         saver = tf.train.Saver()
         input_dim[0] = -1
         output_dim[0] = -1
@@ -157,7 +161,7 @@ class CNNProfiler:
     def get_mid_by_label(self,  input_dim, output_dim, in_x, in_y, label, anchor=None, filter=None):
         if self.cnn_builder is None:
             self.cnn_builder = CNNBuilder(input_dim, output_dim, self.network_stucture, self.init)
-            self.W, self.B, self.R, self.x, self.y = self.cnn_builder.build_cnn()
+            self.W, self.B, self.R, self.x, self.y, self.is_train = self.cnn_builder.build_cnn()
         saver = tf.train.Saver()
         input_dim[0] = -1
         output_dim[0] = -1

@@ -205,4 +205,4 @@ def ml_filter(distribution_list, mid, result, y, threshold, train=False):
 
 
 
-test_wrong_filter()
+train()

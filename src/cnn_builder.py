@@ -33,9 +33,14 @@ class CNNBuilder:
     def max_pool_2x2(self, x):
         return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
+    def batch_norm(self, x, train_flag):
+        return tf.contrib.layers.batch_norm(x, decay=0.9, center=True, scale=True, epsilon=1e-3,
+                                        is_training=train_flag, updates_collections=None)
+
     def build_cnn(self):
         x = tf.placeholder("float", self.input_dim)
         y = tf.placeholder("float", self.output_dim)
+        is_train = tf.placeholder_with_default(False, [])
         self.R.append(x)
         conv_count = 0
         dense_count = 0
@@ -43,11 +48,10 @@ class CNNBuilder:
             if layer.type == "conv":
                 w = self.weight_variable(layer.param, "conv_W_"+str(conv_count))
                 b = self.bias_variable(layer.param[-1:], "conv_B_"+str(conv_count))
-                r1 = self.conv2d(self.R[-1], w) + b
+                r1 = self.batch_norm(self.conv2d(self.R[-1], w) + b, is_train)
                 r = tf.nn.relu(r1)
                 self.W.append(w)
                 self.B.append(b)
-                self.R.append(r1)
                 self.R.append(r)
                 conv_count += 1
             if layer.type == "pool":
@@ -63,16 +67,12 @@ class CNNBuilder:
                     self.B.append(b)
                     self.R.append(r)
                 else:
-                    r1 = tf.matmul(r_reshape, w) + b
-                    r = tf.nn.relu(r1)
+                    r1 = self.batch_norm(tf.matmul(r_reshape, w) + b, is_train)
+                    r = tf.layers.dropout(tf.nn.relu(r1), training=is_train)
                     self.W.append(w)
                     self.B.append(b)
-                    self.R.append(r1)
                     self.R.append(r)
                 dense_count += 1
-            if layer.type == "dropout":
-                r = tf.nn.dropout(self.R[-1], layer.param[0])
-                self.R.append(r)
-        return self.W, self.B, self.R, x, y
+        return self.W, self.B, self.R, x, y, is_train
 
 

@@ -34,7 +34,7 @@ def train():
     values = y
     n_values = 10
     y = np.eye(n_values)[values]
-    cnn_profiler.train([None, 32, 32, 3], [None, 10], x, y, iter=2500)
+    cnn_profiler.train([None, 32, 32, 3], [None, 10], x, y, iter=5000)
 ################## Test ########################
 def test():
     x = X_test.astype("float32")
@@ -53,10 +53,7 @@ def get_distribution(label, anchor, filter):
     y = np.eye(n_values)[values]
     correct = cnn_profiler.get_correct_mid([None, 32, 32, 3], [None, 10], x, y, anchor=anchor, filter=filter)
     distribute_correct = Distribution(correct)
-    own_dis = []
-    for i in range(correct.shape[0]):
-        dis = distribute_correct.mahanobis_distance(correct[i])
-        own_dis.append(dis)
+    own_dis = distribute_correct.cal_self_distance()
     own_dis = np.array(own_dis)
     # print(own_dis)
     print("######### Distribution for label %d #########"%label)
@@ -110,15 +107,21 @@ def test_m_dist(label):
 def test_wrong_filter():
     x = X_test.astype("float32")
     y = y_test.reshape(-1)
-    x = x[5000:10000]
-    y = y[5000:10000]
+    x = x[:5000]
+    y = y[:5000]
     anchor = -2
     filter = None
     mid = cnn_profiler.get_mid([None, 32, 32, 3], [None, 10], x, anchor=anchor, filter=filter)
     result = cnn_profiler.test([None, 32, 32, 3], [None, 10], x)
     distribution_list = calc_distribution(anchor, filter, distribution_path)
-    ml_filter(distribution_list, mid, result, y, 0.9, train=False)
-
+    min = min_rank(distribution_list, mid, result, y, 1.1)
+    # boundary = boundary_rank(distribution_list, mid, result, y, 1.1)
+    random = random_rank(distribution_list, mid, result, y, 1.1)
+    # mix_rank([min, boundary], [0.5, 0.5], result, y)
+    # min_rank_with_mdist(distribution_list, mid, result, y, 1.1)
+    #
+    plt.legend(loc="lower right")
+    plt.show()
 def min_filter(distribution_list, mid, result, y, threshold):
     correct = 0
     total = 0
@@ -132,7 +135,7 @@ def min_filter(distribution_list, mid, result, y, threshold):
         dis_validate = np.array(dis)
         dis_validate.sort()
         min_label = dis.argmin()
-        if (dis_validate[1] - dis_validate[0]>5):
+        if (dis_validate[1] / dis_validate[0]>threshold):
             total += 1
             if result[i] == y[i]:
                 correct += 1
@@ -144,6 +147,180 @@ def min_filter(distribution_list, mid, result, y, threshold):
     print(correct / total)
     print(correct_dropped, total_dropped)
     print(correct_dropped / total_dropped)
+
+
+def min_rank(distribution_list, mid, result, y, threshold):
+    wrong = 0
+    total = 0
+    total_wrong = len(result[result!=y])
+    total_case = len(result)
+    rank = []
+    for i in range(y.shape[0]):
+        dis = []
+        for j in range(10):
+            m_dist = distribution_list[j].mahanobis_distance(mid[i])
+            self_m = distribution_list[j].self_distance.mean()
+            dis.append(m_dist / self_m)
+        dis = np.array(dis)
+        dis_validate = np.array(dis)
+        dis_validate.sort()
+        min_label = dis.argmin()
+        rank.append(dis_validate[1] / dis_validate[0])
+    rank = np.array(rank)
+    sorted_rank = rank.argsort()
+    print("MIN RANK")
+    x_plot = []
+    y_plot = []
+    for i in range(len(sorted_rank)):
+        total += 1
+        if result[sorted_rank[i]] != y[sorted_rank[i]]:
+            wrong += 1
+        if (i+1) % 50 == 0:
+            print("########## selected %d #########" %(i+1))
+            print(wrong, total)
+            print(wrong/total_wrong,  total/total_case)
+            x_plot.append(total/total_case)
+            # y_plot.append((total_case - (total_wrong - wrong)) / total_case)
+            y_plot.append(wrong / total_wrong)
+    plt.plot(x_plot,y_plot,"^",label="Mdist Selection")
+    return rank
+
+
+def random_rank(distribution_list, mid, result, y, threshold):
+    wrong = 0
+    total = 0
+    total_wrong = len(result[result!=y])
+    total_case = len(result)
+    rank = np.arange(len(result))
+    sorted_rank = rank
+    np.random.shuffle(sorted_rank)
+    print("MIN RANK")
+    x_plot = []
+    y_plot = []
+    for i in range(len(sorted_rank)):
+        total += 1
+        if result[sorted_rank[i]] != y[sorted_rank[i]]:
+            wrong += 1
+        if (i+1) % 50 == 0:
+            print("########## selected %d #########" %(i+1))
+            print(wrong, total)
+            print(wrong/total_wrong,  total/total_case)
+            x_plot.append(total/total_case)
+            # y_plot.append((total_case - (total_wrong - wrong)) / total_case)
+            y_plot.append(wrong / total_wrong)
+    plt.plot(x_plot,y_plot,".", label="Random Selection")
+    return rank
+
+
+def boundary_rank(distribution_list, mid, result, y, threshold):
+    wrong = 0
+    total = 0
+    total_wrong = len(result[result != y])
+    total_case = len(result)
+    rank = []
+    for i in range(y.shape[0]):
+        max_pred = mid[i].max()
+        rank.append(max_pred)
+    rank = np.array(rank)
+    sorted_rank = rank.argsort()
+    # np.set_printoptions(threshold=np.inf)
+    # print(sorted_rank)
+    x_plot = []
+    y_plot = []
+    print("BOUNDARY RANK")
+    for i in range(len(sorted_rank)):
+        total += 1
+        if result[sorted_rank[i]] != y[sorted_rank[i]]:
+            wrong += 1
+        if (i + 1) % 50 == 0:
+            print("########## selected %d #########" % (i+1))
+            print(wrong, total)
+            print(wrong / total_wrong, total / total_case)
+            x_plot.append(total/total_case)
+            y_plot.append((total_case - (total_wrong - wrong)) / total_case)
+    plt.plot(x_plot,y_plot,"o", label="Boundary Selection")
+    return rank
+
+def min_rank_with_mdist(distribution_list, mid, result, y, threshold):
+    wrong = 0
+    total = 0
+    total_wrong = len(result[result!=y])
+    total_case = len(result)
+    rank = []
+    for i in range(y.shape[0]):
+        dis = []
+        for j in range(10):
+            m_dist = distribution_list[j].mahanobis_distance(mid[i])
+            self_m = distribution_list[j].self_distance.mean()
+            dis.append(m_dist / self_m)
+        dis = np.array(dis)
+        dis_validate = np.array(dis)
+        dis_validate.sort()
+        min_label = dis.argmin()
+        rank.append(dis_validate[1] / dis_validate[0] + 1/dis[result[i]])
+    rank = np.array(rank)
+    sorted_rank = rank.argsort()
+    print("MIN RANK")
+    x_plot = []
+    y_plot = []
+    for i in range(len(sorted_rank)):
+        total += 1
+        if result[sorted_rank[i]] != y[sorted_rank[i]]:
+            wrong += 1
+        if (i+1) % 50 == 0:
+            print("########## selected %d #########" %(i+1))
+            print(wrong, total)
+            print(wrong/total_wrong,  total/total_case)
+            x_plot.append(total/total_case)
+            y_plot.append(wrong/total_wrong)
+    plt.plot(x_plot,y_plot,"^")
+    return rank
+def mix_rank(rank_list, rank_rate, result, y):
+    wrong = 0
+    total = 0
+    total_wrong = len(result[result != y])
+    total_case = len(result)
+    print("MIX RANK")
+    x_plot = []
+    y_plot = []
+    sorted_rank_list = []
+    anchors = np.zeros(len(rank_list)).astype(np.int)
+    for i in range(len(rank_list)):
+        sorted_rank = rank_list[i].argsort()
+        print(sorted_rank)
+        sorted_rank_list.append(sorted_rank)
+
+    for i in range(0, len(y), 50):
+        inter = None
+        for sr in sorted_rank_list:
+            if inter is None:
+                inter = sr[:i]
+            else:
+                inter = np.intersect1d(inter, sr[:i])
+        print(len(inter))
+    choice = np.random.choice(np.arange(len(rank_list)), len(y), p=rank_rate)
+    choose_result = []
+    for i in range(len(y)):
+        choose = sorted_rank_list[choice[i]][anchors[choice[i]]]
+        while choose in choose_result:
+            if anchors[choice[i]] < len(y)-1:
+                anchors[choice[i]] += 1
+            else:
+                choice[i] = (choice[i] + 1) % len(rank_list)
+            choose = sorted_rank_list[choice[i]][anchors[choice[i]]]
+        choose_result.append(choose)
+    for i in range(len(choose_result)):
+        total += 1
+        if result[choose_result[i]] != y[choose_result[i]]:
+            wrong += 1
+        if (i + 1) % 50 == 0:
+            print("########## selected %d #########" % (i + 1))
+            print(wrong, total)
+            print(wrong / total_wrong, total / total_case)
+            x_plot.append(total / total_case)
+            y_plot.append((total_case - (total_wrong - wrong)) / total_case)
+    plt.plot(x_plot, y_plot, "*")
+
 
 def boundary_filter(distribution_list, mid, result, y, threshold):
     correct = 0
@@ -209,4 +386,7 @@ def ml_filter(distribution_list, mid, result, y, threshold, train=False):
         print(correct_dropped, total_dropped)
         print(correct_dropped / total_dropped)
 
+# test_m_dist(3)
 test_wrong_filter()
+# train()
+# test()
